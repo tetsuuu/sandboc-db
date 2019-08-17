@@ -1,102 +1,85 @@
 resource "aws_vpc" "service-vpc" {
-  cidr_block           = local.vpc_cidr_blocks[var.region]
+  cidr_block           = "${lookup(local.vpc_cidr_blocks, var.region)}"
   enable_dns_hostnames = true
   enable_dns_support   = true
   instance_tenancy     = "default"
 
   tags = {
     Name         = "${var.region}-${var.service_name}-vpc"
-    Envvironment = var.environment
-    Region       = var.region
-    Service      = var.service_name
+    Envvironment = "${var.environment}"
+    Region       = "${var.region}"
+    Service      = "${var.service_name}"
   }
 }
 
 resource "aws_subnet" "public" {
-  //count                   = "${length(split(",", lookup(local.availability_zones, var.region)))}"
-  count  = 2
-  vpc_id = aws_vpc.service-vpc.id
-  cidr_block = cidrsubnet(
-    aws_vpc.service-vpc.cidr_block,
-    4,
-    count.index + length(split(",", local.availability_zones[var.region])) * 0,
-  )
-  availability_zone = element(
-    split(",", local.availability_zones[var.region]),
-    count.index,
-  )
+  count                   = "${length(split(",", lookup(local.availability_zones, var.region)))}"
+  vpc_id                  = "${aws_vpc.service-vpc.id}"
+  cidr_block              = "${cidrsubnet(aws_vpc.service-vpc.cidr_block, 4, count.index + length(split(",", lookup(local.availability_zones, var.region))) * 0)}"
+  availability_zone       = "${element(split(",", lookup(local.availability_zones, var.region)), count.index)}"
   map_public_ip_on_launch = true
-  depends_on              = [aws_vpc.service-vpc]
+  depends_on              = ["aws_vpc.service-vpc"]
 
   tags = {
     Name         = "${var.region}-${var.service_name}-public-${count.index}"
-    Envvironment = var.environment
-    Region       = var.region
-    Service      = var.service_name
+    Envvironment = "${var.environment}"
+    Region       = "${var.region}"
+    Service      = "${var.service_name}"
   }
 }
 
 resource "aws_subnet" "private" {
-  //count                   = "${length(split(",", lookup(local.availability_zones, var.region)))}"
-  count  = 2
-  vpc_id = aws_vpc.service-vpc.id
-  cidr_block = cidrsubnet(
-    aws_vpc.service-vpc.cidr_block,
-    4,
-    count.index + length(split(",", local.availability_zones[var.region])) * 1,
-  )
-  availability_zone = element(
-    split(",", local.availability_zones[var.region]),
-    count.index,
-  )
+  count                   = "${length(split(",", lookup(local.availability_zones, var.region)))}"
+  vpc_id                  = "${aws_vpc.service-vpc.id}"
+  cidr_block              = "${cidrsubnet(aws_vpc.service-vpc.cidr_block, 4, count.index + length(split(",", lookup(local.availability_zones, var.region))) * 1)}"
+  availability_zone       = "${element(split(",", lookup(local.availability_zones, var.region)), count.index)}"
   map_public_ip_on_launch = false
-  depends_on              = [aws_vpc.service-vpc]
+  depends_on              = ["aws_vpc.service-vpc"]
 
   tags = {
     Name         = "${var.region}-${var.service_name}-private-${count.index}"
-    Envvironment = var.environment
-    Region       = var.region
-    Service      = var.service_name
+    Envvironment = "${var.environment}"
+    Region       = "${var.region}"
+    Service      = "${var.service_name}"
   }
 }
 
 resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.service-vpc.id
+  vpc_id = "${aws_vpc.service-vpc.id}"
 
   tags = {
     Name         = "${var.region}-${var.service_name}-igw"
-    Envvironment = var.environment
-    Region       = var.region
-    Service      = var.service_name
+    Envvironment = "${var.environment}"
+    Region       = "${var.region}"
+    Service      = "${var.service_name}"
   }
 }
 
 resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.service-vpc.id
+  vpc_id = "${aws_vpc.service-vpc.id}"
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.igw.id
+    gateway_id = "${aws_internet_gateway.igw.id}"
   }
 
   tags = {
     Name         = "${var.region}-${var.service_name}-route-public"
-    Envvironment = var.environment
-    Region       = var.region
-    Service      = var.service_name
+    Envvironment = "${var.environment}"
+    Region       = "${var.region}"
+    Service      = "${var.service_name}"
   }
 }
 
 resource "aws_route_table" "private" {
-  //count  = "${length(split(",", lookup(local.availability_zones, var.region)))}"
-  count  = 2
-  vpc_id = aws_vpc.service-vpc.id
+  count  = "${length(split(",", lookup(local.availability_zones, var.region)))}"
+  vpc_id = "${aws_vpc.service-vpc.id}"
 
   tags = {
     Name         = "${var.region}-${var.service_name}-route-private-${count.index}"
-    Envvironment = var.environment
-    Region       = var.region
-    Service      = var.service_name
+    Envvironment = "${var.environment}"
+    Region       = "${var.region}"
+    Service      = "${var.service_name}"
   }
 }
 
@@ -121,25 +104,17 @@ resource "aws_route_table" "private" {
 */
 
 resource "aws_route_table_association" "public" {
-  //count          = "${length(split(",", lookup(local.availability_zones, var.region)))}"
-  count = 2
-  depends_on = [
-    aws_route_table.public,
-    aws_subnet.public,
-  ]
-  route_table_id = element(aws_route_table.public.*.id, count.index)
-  subnet_id      = element(aws_subnet.public.*.id, count.index)
+  count          = "${length(split(",", lookup(local.availability_zones, var.region)))}"
+  depends_on     = ["aws_route_table.public", "aws_subnet.public"]
+  route_table_id = "${element(aws_route_table.public.*.id, count.index)}"
+  subnet_id      = "${element(aws_subnet.public.*.id, count.index)}"
 }
 
 resource "aws_route_table_association" "private" {
-  //count          = "${length(split(",", lookup(local.availability_zones, var.region)))}"
-  count = 2
-  depends_on = [
-    aws_route_table.private,
-    aws_subnet.private,
-  ]
-  route_table_id = element(aws_route_table.private.*.id, count.index)
-  subnet_id      = element(aws_subnet.private.*.id, count.index)
+  count          = "${length(split(",", lookup(local.availability_zones, var.region)))}"
+  depends_on     = ["aws_route_table.private", "aws_subnet.private"]
+  route_table_id = "${element(aws_route_table.private.*.id, count.index)}"
+  subnet_id      = "${element(aws_subnet.private.*.id, count.index)}"
 }
 
 /* TODO arrenge later
