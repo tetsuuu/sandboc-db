@@ -1,5 +1,9 @@
+terraform {
+  required_version = "~> 0.12"
+}
+
 provider "aws" {
-  region  = "${var.region}"
+  region  = var.region
   version = "~> 2.14"
 }
 
@@ -11,13 +15,14 @@ variable "environment" {}
 variable "ec2_ami" {}
 variable "common_key" {}
 variable "short_env" {}
+
 variable "service_db" {
-  type    = "map"
+  type    = map
   default = {}
 }
 
 variable "admin_access_cidr_block" {
-  type    = "list"
+  type    = list
   default = []
 }
 
@@ -41,3 +46,4 @@ locals {
     "us-west-2"      = "us-west-2a,us-west-2b"
   }
 }
+
