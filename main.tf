@@ -12,7 +12,8 @@ variable "ec2_ami" {}
 variable "common_key" {}
 variable "short_env" {}
 variable "service_db" {
-  type = "map"
+  type    = "map"
+  default = {}
 }
 
 variable "admin_access_cidr_block" {
@@ -29,13 +30,13 @@ locals {
     "ap-northeast-1" = "192.168.0.0/16"
     "us-east-1"      = "192.168.0.0/16"
     "ap-southeast-1" = "192.168.0.0/16"
-    "us-west-2"   = "192.168.0.0/16"
+    "us-west-2"      = "192.168.0.0/16"
   }
 
   availability_zones = {
     "ap-northeast-1" = "ap-northeast-1a,ap-northeast-1c"
     "us-east-1"      = "us-east-1a,us-east-1c"
     "ap-southeast-1" = "ap-southeast-1a,ap-southeast-1b"
-    "us-west-2"   = "us-west-2a,us-west-2b"
+    "us-west-2"      = "us-west-2a,us-west-2b"
   }
 }
