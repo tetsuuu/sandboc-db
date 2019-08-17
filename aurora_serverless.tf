@@ -72,7 +72,7 @@ resource "aws_security_group" "aurora-serverless" {
 resource "aws_db_subnet_group" "mysql-serverless" {
   name        = "${var.service_db}-mysql-serverless"
   description = "${var.service_db} db by serverless for load test"
-  subnet_ids  = ["${aws_subnet.private.id}"]
+  subnet_ids  = ["${aws_subnet.private.*.id}"]
 
   tags = {
     Name    = "${var.service_name}-${var.environment}"
@@ -81,6 +81,7 @@ resource "aws_db_subnet_group" "mysql-serverless" {
     Service = "${var.service_name}"
   }
 }
+
 
 /* TODO arrenge later
 

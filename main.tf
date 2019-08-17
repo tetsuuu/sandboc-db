@@ -25,6 +25,7 @@ variable "service_name" {
   default = "maintenance"
 }
 
+// change cidr blocks
 locals {
   vpc_cidr_blocks = {
     "ap-northeast-1" = "192.168.0.0/16"
