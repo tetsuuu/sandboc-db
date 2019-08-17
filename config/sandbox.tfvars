@@ -17,7 +17,6 @@ service_db = {
   db                 = "serverless-db"
   user               = "dev_user"
   password           = "sandbox0817"
-  port               = "3306"
   backup_window      = "18:00-18:30"
   maintenance_window = "sun:19:00-sun:19:30"
   maximum            = 2

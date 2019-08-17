@@ -1,7 +1,21 @@
-resource "aws_db_subnet_group" "db" {
-  name        = "${var.region}-${var.service_name}"
-  description = "db subnet for ${var.service_name}"
+/* TODO try
+data "aws_subnet" "db_subnet" {
+  id = "${aws_subnet.private.*.id}"
+}
+*/
+
+resource "aws_db_subnet_group" "mysql-serverless" {
+  name        = "${var.service_name}-${var.short_env}-mysql-serverless"
+  description = "${var.service_name} db by serverless for load test"
   subnet_ids  = ["${aws_subnet.private.*.id}"]
+  //subnet_ids  = ["${data.aws_subnet.db_subnet.id}"]
+
+  tags = {
+    Name    = "${var.service_name}-${var.environment}"
+    Envvironment     = "${var.environment}"
+    Region  = "${var.region}"
+    Service = "${var.service_name}"
+  }
 }
 
 resource "aws_rds_cluster" "service-db" {
@@ -12,8 +26,8 @@ resource "aws_rds_cluster" "service-db" {
   database_name                   = "${var.service_name}${var.short_env}"
   master_username                 = "${var.service_db["user"]}"
   master_password                 = "${var.service_db["password"]}"
-  port                            = "${var.service_db["port"]}"
-  db_subnet_group_name            = "${aws_db_subnet_group.db.name}"
+  port                            = 3306
+  db_subnet_group_name            = "${aws_db_subnet_group.mysql-serverless.name}"
   vpc_security_group_ids          = ["${aws_security_group.aurora-serverless.id}"]
   storage_encrypted               = true
   skip_final_snapshot             = "${var.environment == "develop" ? true : false}"
@@ -44,7 +58,6 @@ resource "aws_rds_cluster" "service-db" {
   }
 }
 
-
 resource "aws_security_group" "aurora-serverless" {
   vpc_id      = "${aws_vpc.service-vpc.id}"
   name        = "${format("%s-sg", var.service_name)}"
@@ -67,12 +80,6 @@ resource "aws_security_group" "aurora-serverless" {
   lifecycle {
     create_before_destroy = true
   }
-}
-
-resource "aws_db_subnet_group" "mysql-serverless" {
-  name        = "${var.service_db}-mysql-serverless"
-  description = "${var.service_db} db by serverless for load test"
-  subnet_ids  = ["${aws_subnet.private.*.id}"]
 
   tags = {
     Name    = "${var.service_name}-${var.environment}"
@@ -81,7 +88,6 @@ resource "aws_db_subnet_group" "mysql-serverless" {
     Service = "${var.service_name}"
   }
 }
-
 
 /* TODO arrenge later
 

@@ -13,7 +13,8 @@ resource "aws_vpc" "service-vpc" {
 }
 
 resource "aws_subnet" "public" {
-  count                   = "${length(split(",", lookup(local.availability_zones, var.region)))}"
+  //count                   = "${length(split(",", lookup(local.availability_zones, var.region)))}"
+  count                   = 2
   vpc_id                  = "${aws_vpc.service-vpc.id}"
   cidr_block              = "${cidrsubnet(aws_vpc.service-vpc.cidr_block, 4, count.index + length(split(",", lookup(local.availability_zones, var.region))) * 0)}"
   availability_zone       = "${element(split(",", lookup(local.availability_zones, var.region)), count.index)}"
@@ -29,7 +30,8 @@ resource "aws_subnet" "public" {
 }
 
 resource "aws_subnet" "private" {
-  count                   = "${length(split(",", lookup(local.availability_zones, var.region)))}"
+  //count                   = "${length(split(",", lookup(local.availability_zones, var.region)))}"
+  count                   = 2
   vpc_id                  = "${aws_vpc.service-vpc.id}"
   cidr_block              = "${cidrsubnet(aws_vpc.service-vpc.cidr_block, 4, count.index + length(split(",", lookup(local.availability_zones, var.region))) * 1)}"
   availability_zone       = "${element(split(",", lookup(local.availability_zones, var.region)), count.index)}"
@@ -72,7 +74,8 @@ resource "aws_route_table" "public" {
 }
 
 resource "aws_route_table" "private" {
-  count  = "${length(split(",", lookup(local.availability_zones, var.region)))}"
+  //count  = "${length(split(",", lookup(local.availability_zones, var.region)))}"
+  count  = 2
   vpc_id = "${aws_vpc.service-vpc.id}"
 
   tags = {
@@ -104,14 +107,16 @@ resource "aws_route_table" "private" {
 */
 
 resource "aws_route_table_association" "public" {
-  count          = "${length(split(",", lookup(local.availability_zones, var.region)))}"
+  //count          = "${length(split(",", lookup(local.availability_zones, var.region)))}"
+  count          = 2
   depends_on     = ["aws_route_table.public", "aws_subnet.public"]
   route_table_id = "${element(aws_route_table.public.*.id, count.index)}"
   subnet_id      = "${element(aws_subnet.public.*.id, count.index)}"
 }
 
 resource "aws_route_table_association" "private" {
-  count          = "${length(split(",", lookup(local.availability_zones, var.region)))}"
+  //count          = "${length(split(",", lookup(local.availability_zones, var.region)))}"
+  count          = 2
   depends_on     = ["aws_route_table.private", "aws_subnet.private"]
   route_table_id = "${element(aws_route_table.private.*.id, count.index)}"
   subnet_id      = "${element(aws_subnet.private.*.id, count.index)}"
