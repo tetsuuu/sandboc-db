@@ -5,10 +5,10 @@ resource "aws_vpc" "service-vpc" {
   instance_tenancy     = "default"
 
   tags = {
-    Name         = "${var.region}-${var.service_name}-vpc"
-    Envvironment = "${var.environment}"
-    Region       = "${var.region}"
-    Service      = "${var.service_name}"
+    Name        = "${var.region}-${var.service_name}-vpc"
+    Environment = "${var.environment}"
+    Region      = "${var.region}"
+    Service     = "${var.service_name}"
   }
 }
 
@@ -21,10 +21,10 @@ resource "aws_subnet" "public" {
   depends_on              = ["aws_vpc.service-vpc"]
 
   tags = {
-    Name         = "${var.region}-${var.service_name}-public-${count.index}"
-    Envvironment = "${var.environment}"
-    Region       = "${var.region}"
-    Service      = "${var.service_name}"
+    Name        = "${var.region}-${var.service_name}-public-${count.index}"
+    Environment = "${var.environment}"
+    Region      = "${var.region}"
+    Service     = "${var.service_name}"
   }
 }
 
@@ -37,10 +37,10 @@ resource "aws_subnet" "private" {
   depends_on              = ["aws_vpc.service-vpc"]
 
   tags = {
-    Name         = "${var.region}-${var.service_name}-private-${count.index}"
-    Envvironment = "${var.environment}"
-    Region       = "${var.region}"
-    Service      = "${var.service_name}"
+    Name        = "${var.region}-${var.service_name}-private-${count.index}"
+    Environment = "${var.environment}"
+    Region      = "${var.region}"
+    Service     = "${var.service_name}"
   }
 }
 
@@ -48,10 +48,10 @@ resource "aws_internet_gateway" "igw" {
   vpc_id = "${aws_vpc.service-vpc.id}"
 
   tags = {
-    Name         = "${var.region}-${var.service_name}-igw"
-    Envvironment = "${var.environment}"
-    Region       = "${var.region}"
-    Service      = "${var.service_name}"
+    Name        = "${var.region}-${var.service_name}-igw"
+    Environment = "${var.environment}"
+    Region      = "${var.region}"
+    Service     = "${var.service_name}"
   }
 }
 
@@ -64,10 +64,10 @@ resource "aws_route_table" "public" {
   }
 
   tags = {
-    Name         = "${var.region}-${var.service_name}-route-public"
-    Envvironment = "${var.environment}"
-    Region       = "${var.region}"
-    Service      = "${var.service_name}"
+    Name        = "${var.region}-${var.service_name}-route-public"
+    Environment = "${var.environment}"
+    Region      = "${var.region}"
+    Service     = "${var.service_name}"
   }
 }
 
@@ -76,10 +76,10 @@ resource "aws_route_table" "private" {
   vpc_id = "${aws_vpc.service-vpc.id}"
 
   tags = {
-    Name         = "${var.region}-${var.service_name}-route-private-${count.index}"
-    Envvironment = "${var.environment}"
-    Region       = "${var.region}"
-    Service      = "${var.service_name}"
+    Name        = "${var.region}-${var.service_name}-route-private-${count.index}"
+    Environment = "${var.environment}"
+    Region      = "${var.region}"
+    Service     = "${var.service_name}"
   }
 }
 
@@ -96,7 +96,7 @@ resource "aws_route_table" "private" {
 
   tags = {
     Name    = "${var.region}-${var.service_name}-route-private-${count.index}"
-    Envvironment     = "${var.environment}"
+    Environment     = "${var.environment}"
     Region  = "${var.region}"
     Service = "${var.service_name}"
   }
@@ -124,7 +124,7 @@ resource "aws_eip" "developer" {
 
   tags = {
     Name         = "${var.region}-${var.service_name}-eip-consumer-${count.index}"
-    Envvironment = "${var.environment}"
+    Environment = "${var.environment}"
     Region       = "${var.region}"
     Service      = "${var.service_name}"
   }
@@ -136,7 +136,7 @@ resource "aws_eip" "admin" {
 
   tags = {
     Name         = "${var.region}-${var.service_name}-eip-admin-${count.index}"
-    Envvironment = "${var.environment}"
+    Environment = "${var.environment}"
     Region       = "${var.region}"
     Service      = "${var.service_name}"
   }
@@ -150,7 +150,7 @@ resource "aws_nat_gateway" "developer" {
 
   tags = {
     Name         = "${var.region}-${var.service_name}-ngw-consumer-${count.index}"
-    Envvironment = "${var.environment}"
+    Environment = "${var.environment}"
     Region       = "${var.region}"
     Service      = "${var.service_name}"
   }
@@ -164,7 +164,7 @@ resource "aws_nat_gateway" "admin" {
 
   tags = {
     Name         = "${var.region}-${var.service_name}-ngw-admin-${count.index}"
-    Envvironment = "${var.environment}"
+    Environment = "${var.environment}"
     Region       = "${var.region}"
     Service      = "${var.service_name}"
   }
@@ -182,7 +182,7 @@ resource "aws_route_table" "developer" {
 
   tags = {
     Name         = "${var.region}-${var.service_name}-route-consumer-${count.index}"
-    Envvironment = "${var.environment}"
+    Environment = "${var.environment}"
     Region       = "${var.region}"
     Service      = "${var.service_name}"
   }
@@ -200,7 +200,7 @@ resource "aws_route_table" "admin" {
 
   tags = {
     Name         = "${var.region}-${var.service_name}-route-admin-${count.index}"
-    Envvironment = "${var.environment}"
+    Environment = "${var.environment}"
     Region       = "${var.region}"
     Service      = "${var.service_name}"
   }

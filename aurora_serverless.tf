@@ -4,10 +4,10 @@ resource "aws_db_subnet_group" "mysql-serverless" {
   subnet_ids  = "${aws_subnet.private.*.id}"
 
   tags = {
-    Name         = "${var.service_name}-${var.environment}"
-    Envvironment = "${var.environment}"
-    Region       = "${var.region}"
-    Service      = "${var.service_name}"
+    Name        = "${var.service_name}-${var.environment}"
+    Environment = "${var.environment}"
+    Region      = "${var.region}"
+    Service     = "${var.service_name}"
   }
 }
 
@@ -43,10 +43,10 @@ resource "aws_rds_cluster" "service-db" {
   }
 
   tags = {
-    Name         = "${var.service_name}-${var.environment}"
-    Envvironment = "${var.environment}"
-    Region       = "${var.region}"
-    Service      = "${var.service_name}"
+    Name        = "${var.service_name}-${var.environment}"
+    Environment = "${var.environment}"
+    Region      = "${var.region}"
+    Service     = "${var.service_name}"
   }
 }
 
@@ -74,10 +74,10 @@ resource "aws_security_group" "aurora-serverless" {
   }
 
   tags = {
-    Name         = "${var.service_name}-${var.environment}"
-    Envvironment = "${var.environment}"
-    Region       = "${var.region}"
-    Service      = "${var.service_name}"
+    Name        = "${var.service_name}-${var.environment}"
+    Environment = "${var.environment}"
+    Region      = "${var.region}"
+    Service     = "${var.service_name}"
   }
 }
 
