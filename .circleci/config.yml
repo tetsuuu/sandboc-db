@@ -64,7 +64,7 @@ jobs:
       - image: buildpack-deps:trusty
     steps:
       - checkout
-      - run: curl -X POST --data-urlencode "payload={\"username\": \"circleCI\",\"text\": \"${CIRCLE_JOB} ${STAGE} waiting for Infra deployment.\n ${CIRCLE_BUILD_URL}\", \"icon_emoji\": \":gorilla:\" }" "${SLACK_WEB_HOOK}"
+      - run: curl -X POST --data-urlencode "payload={\"username\": \"circleci\",\"text\": \"${CIRCLE_JOB} ${STAGE} waiting for Infra deployment.\n ${CIRCLE_BUILD_URL}\", \"icon_emoji\": \":circleci:\" }" "${SLACK_WEB_HOOK}"
   apply:
     steps:
       - attach_workspace:
