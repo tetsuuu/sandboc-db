@@ -5,7 +5,7 @@ resource "aws_vpc" "service-vpc" {
   instance_tenancy     = "default"
 
   tags = {
-    Name         = "${var.region}-${var.service_name}-vpc"
+    Name         = "${var.service_name}-${var.short_env}-vpc"
     Envvironment = "${var.environment}"
     Region       = "${var.region}"
     Service      = "${var.service_name}"
@@ -21,7 +21,7 @@ resource "aws_subnet" "public" {
   depends_on              = ["aws_vpc.service-vpc"]
 
   tags = {
-    Name         = "${var.region}-${var.service_name}-public-${count.index}"
+    Name         = "${var.service_name}-${var.short_env}-public-${count.index}"
     Envvironment = "${var.environment}"
     Region       = "${var.region}"
     Service      = "${var.service_name}"
@@ -37,7 +37,7 @@ resource "aws_subnet" "private" {
   depends_on              = ["aws_vpc.service-vpc"]
 
   tags = {
-    Name         = "${var.region}-${var.service_name}-private-${count.index}"
+    Name         = "${var.service_name}-${var.short_env}-private-${count.index}"
     Envvironment = "${var.environment}"
     Region       = "${var.region}"
     Service      = "${var.service_name}"
@@ -48,7 +48,7 @@ resource "aws_internet_gateway" "igw" {
   vpc_id = "${aws_vpc.service-vpc.id}"
 
   tags = {
-    Name         = "${var.region}-${var.service_name}-igw"
+    Name         = "${var.service_name}-${var.short_env}-igw"
     Envvironment = "${var.environment}"
     Region       = "${var.region}"
     Service      = "${var.service_name}"
@@ -64,7 +64,7 @@ resource "aws_route_table" "public" {
   }
 
   tags = {
-    Name         = "${var.region}-${var.service_name}-route-public"
+    Name         = "${var.service_name}-${var.short_env}-route-public"
     Envvironment = "${var.environment}"
     Region       = "${var.region}"
     Service      = "${var.service_name}"
@@ -76,7 +76,7 @@ resource "aws_route_table" "private" {
   vpc_id = "${aws_vpc.service-vpc.id}"
 
   tags = {
-    Name         = "${var.region}-${var.service_name}-route-private-${count.index}"
+    Name         = "${var.service_name}-${var.short_env}-route-private"
     Envvironment = "${var.environment}"
     Region       = "${var.region}"
     Service      = "${var.service_name}"
