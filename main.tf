@@ -1,5 +1,5 @@
 terraform {
-  required_version = "~> 0.12"
+  required_version = "~> 0.12.5"
 }
 
 provider "aws" {
@@ -17,12 +17,12 @@ variable "common_key" {}
 variable "short_env" {}
 
 variable "service_db" {
-  type    = map
+  type    = "map"
   default = {}
 }
 
 variable "admin_access_cidr_block" {
-  type    = list
+  type    = "list"
   default = []
 }
 
@@ -33,10 +33,10 @@ variable "service_name" {
 // change cidr blocks
 locals {
   vpc_cidr_blocks = {
-    "ap-northeast-1" = "192.168.0.0/16"
-    "us-east-1"      = "192.168.0.0/16"
-    "ap-southeast-1" = "192.168.0.0/16"
-    "us-west-2"      = "192.168.0.0/16"
+    "ap-northeast-1" = "172.31.0.0/16"
+    "us-east-1"      = "172.31.0.0/16"
+    "ap-southeast-1" = "172.31.0.0/16"
+    "us-west-2"      = "172.31.0.0/16"
   }
 
   availability_zones = {

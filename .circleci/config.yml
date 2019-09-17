@@ -1,0 +1,101 @@
+version: 2
+
+defaults:
+  working_directory: ~/work
+  environment: 
+    AWS_ACCESS_KEY_ID: ""
+    AWS_SECRET_ACCESS_KEY: ""
+    STAGE: ""
+    ACCOUNT: ""
+    BUCKET: ""
+    REGION: ""
+    SLACK_WEB_HOOK: ""
+  docker:
+    - image: hashicorp/terraform:0.12.5
+
+jobs:
+  checkout_code:
+    steps:
+      - restore_cache:
+          keys:
+            - hogehoge #probably should confirm need or not
+      - checkout
+      - save_cache:
+          key: hogehoge #probably should confirm need or not
+          paths:
+            - .git
+      - persist_to_workspace:
+          root: ~/
+          paths: work
+  lint:
+    steps:
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: terraform fmt
+          command: |
+            if [ $(terraform fmt | grep -v .terraform | tee fmt_result.txt | wc -l) -gt 0 ]; then
+              echo "Format of this terraform files is not appropriate:"
+              echo
+              cat fmt_result.txt
+              echo
+              echo "Please run terraform fmt"
+              exit 1
+            fi
+  init:
+    steps:
+      - attach_workspace:
+          at: ~/
+      - run: terraform init -input=false
+      - run: ./prep_backend.sh -a ${ACCOUNT} -b ${BUCKET} -r ${REGION} -s ${STAGE} > terraform.tf
+      - persist_to_workspace:
+          root: ~/
+          paths: work
+  plan:
+    steps:
+      - attach_workspace:
+          at: ~/
+      - run: rm -f "plan.out"
+      - run: terraform plan -var-file=./config/${ACCOUNT}/${STAGE}.tfvars -input=false -out=plan.out
+      - persist_to_workspace:
+          root: ~/
+  send-approval-link:
+    docker:
+      - image: buildpack-deps:trusty
+    steps:
+      - checkout
+      - run: curl -X POST --data-urlencode "payload={\"username\": \"circleci\",\"text\": \"${CIRCLE_JOB} ${STAGE} waiting for Infra deployment.\n ${CIRCLE_BUILD_URL}\", \"icon_emoji\": \":circleci:\" }" "${SLACK_WEB_HOOK}"
+  apply:
+    steps:
+      - attach_workspace:
+          at: ~/
+      - run: terraform apply -input=false --auto-approve plan.out
+
+workflows:
+  version: 2
+  plan_and_apply:
+    jobs:
+      - checkout_code
+      - lint:
+          requires:
+            - checkout_code
+          filters:
+            branches:
+              only:
+                - develop
+      - init:
+          requires:
+            - checkout_code
+      - plan:
+          requires:
+            - init
+      - send-approval-link:
+          requires:
+            - plan
+      - waiting-for-approval:
+          type: approval
+          requires:
+            - plan
+      - apply:
+          requires:
+            - hold
