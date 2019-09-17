@@ -6,7 +6,7 @@ environment = "develop"
 
 ec2_ami = "ami-035b3c7efe6d061d5" //"ami-1853ac65"
 
-common_key = "test_env"
+common_key = "sandbox-dev"
 short_env  = "dev"
 
 service_db = {
