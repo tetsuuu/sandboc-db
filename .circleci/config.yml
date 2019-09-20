@@ -1,6 +1,6 @@
 version: 2
 
-defaults:
+defaults: &defaults
   working_directory: ~/work
   environment:
     # STAGE: $CIRCLE_BRANCH
@@ -41,11 +41,14 @@ workflows:
 
 jobs:
   checkout_code:
+    <<: *defaults
     steps:
       - checkout
       - persist_to_workspace:
           root: ~/work
+
   lint:
+    <<: *defaults
     steps:
       - attach_workspace:
           at: ~/work
@@ -60,7 +63,9 @@ jobs:
               echo "Please run terraform fmt"
               exit 1
             fi
+
   init:
+    <<: *defaults
     steps:
       - attach_workspace:
           at: ~/work
@@ -68,16 +73,18 @@ jobs:
       - run: ./prep_backend.sh -a ${ACCOUNT} -b ${BUCKET} -s ${STAGE} > terraform.tf
       - run: terraform init -input=false
       - persist_to_workspace:
-          root: ~/
-          paths: work
+          root: ~/work
+
   plan:
+    <<: *defaults
     steps:
       - attach_workspace:
           at: ~/work
       - run: rm -f "plan.out"
       - run: terraform plan -var-file=./config/${ACCOUNT}/${STAGE}.tfvars -input=false -out=plan.out
       - persist_to_workspace:
-          root: ~/
+          root: ~/work
+
   send-approval-link:
     docker:
       - image: buildpack-deps:trusty
@@ -92,7 +99,9 @@ jobs:
              "icon_emoji": ":circleci:"
             }" \
             ${SLACK_WEB_HOOK}
+
   apply:
+    <<: *defaults
     steps:
       - attach_workspace:
           at: ~/work
