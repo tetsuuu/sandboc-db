@@ -16,6 +16,17 @@ references:
       name: Prepare deploy
       command: |
         mkdir -p /var/tmp/deploy
+    lint_check: &lint_check
+      name: terraform fmt
+      command: |
+        if [ $(terraform fmt | grep -v .terraform | tee fmt_result.txt | wc -l) -gt 0 ]; then
+          echo "Format of this terraform files is not appropriate:"
+          echo
+          cat fmt_result.txt
+          echo
+          echo "Please run terraform fmt"
+          exit 1
+        fi
 
 workflows:
   version: 2
@@ -61,17 +72,7 @@ jobs:
       - attach_workspace:
           at: /var/tmp
       - run: *setup_deploy
-      - run:
-          name: terraform fmt
-          command: |
-            if [ $(terraform fmt | grep -v .terraform | tee fmt_result.txt | wc -l) -gt 0 ]; then
-              echo "Format of this terraform files is not appropriate:"
-              echo
-              cat fmt_result.txt
-              echo
-              echo "Please run terraform fmt"
-              exit 1
-            fi
+      - run: *lint_check
 
   init:
     <<: *defaults
