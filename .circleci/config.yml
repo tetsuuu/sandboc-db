@@ -10,6 +10,35 @@ defaults:
     - image: hashicorp/terraform:0.12.5
       user: root #
 
+workflows:
+  version: 2
+  plan_and_apply:
+    jobs:
+      - checkout_code
+      - lint:
+          requires:
+            - checkout_code
+          filters:
+            branches:
+              only:
+                - develop
+      - init:
+          requires:
+            - checkout_code
+      - plan:
+          requires:
+            - init
+      - send-approval-link:
+          requires:
+            - plan
+      - hold:
+          type: approval
+          requires:
+            - plan
+      - apply:
+          requires:
+            - hold
+
 jobs:
   checkout_code:
     steps:
@@ -53,38 +82,9 @@ jobs:
     docker:
       - image: buildpack-deps:trusty
     steps:
-      - run: curl -X POST --data-urlencode "payload={\"username\": \"circleci\",\"text\": \"${CIRCLE_JOB} ${STAGE} waiting for Infra deployment.\n ${CIRCLE_BUILD_URL}\", \"icon_emoji\": \":circleci:\" }" "${SLACK_WEB_HOOK}"
+      - run: curl -X POST --data-urlencode "payload={\"username\": \"circleci\",\"text\": \"${CIRCLE_JOB} ${STAGE} waiting for Infra deployment.\n ${CIRCLE_BUILD_URL}\", \"icon_emoji\": \":circleci:\" }\" ${SLACK_WEB_HOOK}
   apply:
     steps:
       - attach_workspace:
           at: ~/work
       - run: terraform apply -input=false --auto-approve plan.out
-
-workflows:
-  version: 2
-  plan_and_apply:
-    jobs:
-      - checkout_code
-      - lint:
-          requires:
-            - checkout_code
-          filters:
-            branches:
-              only:
-                - develop
-      - init:
-          requires:
-            - checkout_code
-      - plan:
-          requires:
-            - init
-      - send-approval-link:
-          requires:
-            - plan
-      - hold:
-          type: approval
-          requires:
-            - plan
-      - apply:
-          requires:
-            - hold
