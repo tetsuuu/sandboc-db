@@ -82,7 +82,16 @@ jobs:
     docker:
       - image: buildpack-deps:trusty
     steps:
-      - run: curl -X POST --data-urlencode "payload={ "username": "circleci", "text": "${CIRCLE_JOB} ${STAGE} waiting for Infra deployment.\n ${CIRCLE_BUILD_URL}", "icon_emoji": ":circleci:" }" ${SLACK_WEB_HOOK}
+      - run:
+          name: notify to slack
+          command: |
+            curl -X POST \
+            --data-urlencode "payload={
+             "username": "circleci",
+             "text": "${CIRCLE_JOB} ${STAGE} waiting for Infra deployment.\n ${CIRCLE_BUILD_URL}",
+             "icon_emoji": ":circleci:"
+            }" \
+            ${SLACK_WEB_HOOK}
   apply:
     steps:
       - attach_workspace:
