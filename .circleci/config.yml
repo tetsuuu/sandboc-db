@@ -87,7 +87,7 @@ jobs:
       - run: pwd
 #      - run: echo "export STAGE=${CIRCLE_BRANCH}" >> $BASH_ENV
       - run: echo "ACCOUNT::${ACCOUNT} BUCKET::${BUCKET} STAGE::${STAGE}"
-      - run: /var/tmp/deploy/prep_backend.sh -a ${ACCOUNT} -b ${BUCKET} -s ${STAGE} > terraform.tf
+      - run: /bin/sh ./prep_backend.sh -a ${ACCOUNT} -b ${BUCKET} -s ${STAGE} > terraform.tf
       - run: terraform init -input=false
       - persist_to_workspace:
           root: .
