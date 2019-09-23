@@ -118,7 +118,7 @@ jobs:
           command: |
             curl -X POST --data-urlencode \
             "payload={ \
-            \"channel\": \"#${SLACK_CANNEL}\", \"username\": \"circleci\", \"text\": \"${CIRCLE_PROJECT_REPONAME} ${CIRCLE_BRANCH} waiting for Infra deployment.\n ${CIRCLE_BUILD_URL}\", \"icon_emoji\": \":circleci:\" }" \
+            \"channel\": \"#${SLACK_CANNEL}\", \"username\": \"circleci\", \"text\": \"${CIRCLE_PROJECT_REPONAME} ${CIRCLE_BRANCH} waiting for Infra deployment.\n https://circleci.com/workflow-run/${CIRCLE_WORKFLOW_ID}\", \"icon_emoji\": \":circleci:\" }" \
             ${SLACK_WEB_HOOK}
 
   apply:
