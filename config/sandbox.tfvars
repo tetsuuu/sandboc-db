@@ -1,6 +1,6 @@
 region = "us-east-1"
 
-service_name = "enphoto"
+service_name = ""
 
 environment = "develop"
 
@@ -8,21 +8,11 @@ ec2_ami = "ami-035b3c7efe6d061d5" //"ami-1853ac65"
 
 common_key = "sandbox-dev"
 short_env  = "dev"
-resource_s3_bucket = "uluru-enphoto-infra-tfstate"
+
 admin_access_cidr_block = [
   "39.110.205.167/32",
   "118.103.95.42/32"
 ]
-
-delegate_domain = "en-photo.net"
-
-# mandatory resources are jenkins(master), bastion, ldap and nagios
-optional_resources = [
-  "jenkins_slave",
-  "jenkins_slave_build",
-]
-
-jenkins_slave_count = 1
 
 service_db = {
   engine_version     = "5.7.17"
