@@ -63,14 +63,16 @@ jobs:
     steps:
       - run: *setup_deploy
       - checkout
-#      - persist_to_workspace:
-#          root: /var/tmp/deploy
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
 
   lint:
     <<: *defaults
     steps:
       - attach_workspace:
-          at: /var/tmp/deploy
+          at: .
       - run: *setup_deploy
       - run: *lint_check
 
@@ -78,26 +80,30 @@ jobs:
     <<: *defaults
     steps:
       - attach_workspace:
-          at: /var/tmp/deploy
+          at: .
       - run: *setup_deploy
       - run: ls -l
       - run: echo "export STAGE=${CIRCLE_BRANCH}" >> $BASH_ENV
       - run: ./prep_backend.sh -a ${ACCOUNT} -b ${BUCKET} -s ${STAGE} > terraform.tf
       - run: terraform init -input=false
-#      - persist_to_workspace:
-#          root: /var/tmp/deploy
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
 
   plan:
     <<: *defaults
     steps:
       - attach_workspace:
-          at: /var/tmp/deploy
+          at: .
       - run: *setup_deploy
       - run: rm -f "plan.out"
       #- run: terraform plan -var-file=./config/${ACCOUNT}/${STAGE}.tfvars -input=false -out=plan.out
       - run: terraform plan -var-file=./config/sandbox.tfvars -input=false -out=plan.out
-#      - persist_to_workspace:
-#          root: /var/tmp/deploy
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
 
   send-approval-link:
     docker:
@@ -119,6 +125,6 @@ jobs:
     <<: *defaults
     steps:
       - attach_workspace:
-          at: /var/tmp/deploy
+          at: .
       - run: *setup_deploy
       - run: terraform apply -input=false --auto-approve plan.out
