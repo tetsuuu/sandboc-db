@@ -3,7 +3,7 @@ version: 2
 defaults: &defaults
   working_directory: /var/tmp/deploy
   environment:
-    # STAGE: $CIRCLE_BRANCH
+    STAGE: $CIRCLE_BRANCH
     ACCOUNT: poc
     BUCKET: tk-infra-dev
   docker:
@@ -84,7 +84,7 @@ jobs:
       - run: *setup_deploy
       - run: ls -l prep_backend.sh
       - run: pwd
-      - run: echo "export STAGE=${CIRCLE_BRANCH}" >> $BASH_ENV
+#      - run: echo "export STAGE=${CIRCLE_BRANCH}" >> $BASH_ENV
       - run: echo "ACCOUNT::${ACCOUNT} BUCKET::${BUCKET} STAGE::${STAGE}"
       - run: ./prep_backend.sh -a ${ACCOUNT} -b ${BUCKET} -s ${STAGE} > terraform.tf
       - run: terraform init -input=false
