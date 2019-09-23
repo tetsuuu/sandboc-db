@@ -1,73 +1,33 @@
 version: 2
 
-defaults:
-  working_directory: ~/work
-  environment: 
-    STAGE: ""
-    ACCOUNT: ""
-    BUCKET: ""
-    REGION: ""
-    SLACK_WEB_HOOK: ""
+defaults: &defaults
+  working_directory: /var/tmp/deploy
+  environment:
+#    STAGE: ${CIRCLE_BRANCH}
+    STAGE: develop
+    ACCOUNT: poc
+    BUCKET: tk-infra-dev
   docker:
     - image: hashicorp/terraform:0.12.5
+      user: root #
 
-jobs:
-  checkout_code:
-    steps:
-      - restore_cache:
-          keys:
-            - hogehoge #probably should confirm need or not
-      - checkout
-      - save_cache:
-          key: hogehoge #probably should confirm need or not
-          paths:
-            - .git
-      - persist_to_workspace:
-          root: ~/
-          paths: work
-  lint:
-    steps:
-      - attach_workspace:
-          at: ~/
-      - run:
-          name: terraform fmt
-          command: |
-            if [ $(terraform fmt | grep -v .terraform | tee fmt_result.txt | wc -l) -gt 0 ]; then
-              echo "Format of this terraform files is not appropriate:"
-              echo
-              cat fmt_result.txt
-              echo
-              echo "Please run terraform fmt"
-              exit 1
-            fi
-  init:
-    steps:
-      - attach_workspace:
-          at: ~/
-      - run: terraform init -input=false
-      - run: ./prep_backend.sh -a ${ACCOUNT} -b ${BUCKET} -r ${REGION} -s ${STAGE} > terraform.tf
-      - persist_to_workspace:
-          root: ~/
-          paths: work
-  plan:
-    steps:
-      - attach_workspace:
-          at: ~/
-      - run: rm -f "plan.out"
-      - run: terraform plan -var-file=./config/${ACCOUNT}/${STAGE}.tfvars -input=false -out=plan.out
-      - persist_to_workspace:
-          root: ~/
-  send-approval-link:
-    docker:
-      - image: buildpack-deps:trusty
-    steps:
-      - checkout
-      - run: curl -X POST --data-urlencode "payload={\"username\": \"circleci\",\"text\": \"${CIRCLE_JOB} ${STAGE} waiting for Infra deployment.\n ${CIRCLE_BUILD_URL}\", \"icon_emoji\": \":circleci:\" }" "${SLACK_WEB_HOOK}"
-  apply:
-    steps:
-      - attach_workspace:
-          at: ~/
-      - run: terraform apply -input=false --auto-approve plan.out
+references:
+  commands:
+    setup_deploy: &setup_deploy
+      name: Prepare deploy
+      command: |
+        mkdir -p /var/tmp/deploy
+    lint_check: &lint_check
+      name: terraform fmt
+      command: |
+        if [ $(terraform fmt | grep -v .terraform | tee fmt_result.txt | wc -l) -gt 0 ]; then
+          echo "Format of this terraform files is not appropriate:"
+          echo
+          cat fmt_result.txt
+          echo
+          echo "Please run terraform fmt"
+          exit 1
+        fi
 
 workflows:
   version: 2
@@ -90,10 +50,84 @@ workflows:
       - send-approval-link:
           requires:
             - plan
-      - waiting-for-approval:
+      - hold:
           type: approval
           requires:
             - plan
       - apply:
           requires:
             - hold
+
+jobs:
+  checkout_code:
+    <<: *defaults
+    steps:
+      - run: *setup_deploy
+      - checkout
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+
+  lint:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: .
+      - run: *setup_deploy
+      - run: *lint_check
+
+  init:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: .
+      - run: *setup_deploy
+      - run: ls -l prep_backend.sh
+      - run: pwd
+#      - run: echo "export STAGE=${CIRCLE_BRANCH}" >> $BASH_ENV
+      - run: echo "ACCOUNT::${ACCOUNT} BUCKET::${BUCKET} STAGE::${STAGE}"
+      - run: /bin/sh ./prep_backend.sh -a ${ACCOUNT} -b ${BUCKET} -s ${STAGE} > terraform.tf
+      - run: terraform init -input=false
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+
+  plan:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: .
+      - run: *setup_deploy
+      - run: rm -f "plan.out"
+      #- run: terraform plan -var-file=./config/${ACCOUNT}/${STAGE}.tfvars -input=false -out=plan.out
+      - run: terraform plan -var-file=./config/sandbox.tfvars -input=false -out=plan.out
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+
+  send-approval-link:
+    docker:
+      - image: buildpack-deps:trusty
+    steps:
+      - run: *setup_deploy
+      - run:
+          name: notify to slack
+          command: |
+            curl -X POST \
+            --data-urlencode "payload={
+             "username": "circleci",
+             "text": "${CIRCLE_JOB} ${STAGE} waiting for Infra deployment.\n ${CIRCLE_BUILD_URL}",
+             "icon_emoji": ":circleci:"
+            }" \
+            ${SLACK_WEB_HOOK}
+
+  apply:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: .
+      - run: *setup_deploy
+      - run: terraform apply -input=false --auto-approve plan.out

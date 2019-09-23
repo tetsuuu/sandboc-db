@@ -6,7 +6,7 @@ environment = "develop"
 
 ec2_ami = "ami-035b3c7efe6d061d5" //"ami-1853ac65"
 
-common_key = "mantenance_dev"
+common_key = "sandbox-dev"
 short_env  = "dev"
 resource_s3_bucket = "uluru-enphoto-infra-tfstate"
 admin_access_cidr_block = [
