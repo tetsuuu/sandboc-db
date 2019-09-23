@@ -1,5 +1,5 @@
 terraform {
-  required_version = "0.12.5"
+  required_version = "~> 0.12.5"
 }
 
 provider "aws" {
@@ -8,16 +8,13 @@ provider "aws" {
 }
 
 variable "region" {
-  default = "ap-northeast-1"
+  default = "us-west-2"
 }
 
 variable "environment" {}
 variable "ec2_ami" {}
 variable "common_key" {}
 variable "short_env" {}
-variable "delegate_domain" {}
-variable "target_vpc" {}
-variable "maintenance_cidr_blocks" {}
 
 variable "service_db" {
   type    = "map"
@@ -25,11 +22,6 @@ variable "service_db" {
 }
 
 variable "admin_access_cidr_block" {
-  type    = "list"
-  default = []
-}
-
-variable "optional_resources" {
   type    = "list"
   default = []
 }
@@ -54,4 +46,3 @@ locals {
     "us-west-2"      = "us-west-2a,us-west-2b"
   }
 }
-
