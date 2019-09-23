@@ -83,8 +83,8 @@ jobs:
       - run: echo "export STAGE=${$CIRCLE_BRANCH}" >> $BASH_ENV
       - run: ./prep_backend.sh -a ${ACCOUNT} -b ${BUCKET} -s ${STAGE} > terraform.tf
       - run: terraform init -input=false
-      - persist_to_workspace:
-          root: /var/tmp/deploy
+#      - persist_to_workspace:
+#          root: /var/tmp/deploy
 
   plan:
     <<: *defaults
@@ -95,8 +95,8 @@ jobs:
       - run: rm -f "plan.out"
       #- run: terraform plan -var-file=./config/${ACCOUNT}/${STAGE}.tfvars -input=false -out=plan.out
       - run: terraform plan -var-file=./config/sandbox.tfvars -input=false -out=plan.out
-      - persist_to_workspace:
-          root: /var/tmp/deploy
+#      - persist_to_workspace:
+#          root: /var/tmp/deploy
 
   send-approval-link:
     docker:
