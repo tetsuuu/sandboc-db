@@ -83,6 +83,7 @@ jobs:
           at: .
       - run: *setup_deploy
       - run: ls -l
+      - run: pwd
       - run: echo "export STAGE=${CIRCLE_BRANCH}" >> $BASH_ENV
       - run: ./prep_backend.sh -a ${ACCOUNT} -b ${BUCKET} -s ${STAGE} > terraform.tf
       - run: terraform init -input=false
