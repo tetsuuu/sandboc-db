@@ -63,8 +63,8 @@ jobs:
     steps:
       - run: *setup_deploy
       - checkout
-      - persist_to_workspace:
-          root: /var/tmp/deploy
+#      - persist_to_workspace:
+#          root: /var/tmp/deploy
 
   lint:
     <<: *defaults
