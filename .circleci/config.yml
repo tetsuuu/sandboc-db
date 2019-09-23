@@ -80,7 +80,7 @@ jobs:
       - attach_workspace:
           at: /var/tmp/deploy
       - run: *setup_deploy
-      - run: echo "export STAGE=${$CIRCLE_BRANCH}" >> $BASH_ENV
+      - run: echo "export STAGE=${CIRCLE_BRANCH}" >> $BASH_ENV
       - run: ./prep_backend.sh -a ${ACCOUNT} -b ${BUCKET} -s ${STAGE} > terraform.tf
       - run: terraform init -input=false
 #      - persist_to_workspace:
