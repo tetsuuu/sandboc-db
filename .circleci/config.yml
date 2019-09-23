@@ -116,9 +116,9 @@ jobs:
       - run:
           name: notify to slack
           command: |
-            curl -X POST \
-            --data-urlencode \
-            "payload={ "username": "circleci", "text": "${CIRCLE_JOB} ${STAGE} waiting for Infra deployment.\n ${CIRCLE_BUILD_URL}", "icon_emoji": ":circleci:" }" \
+            curl -X POST --data-urlencode \
+            "payload={ \
+             \"username\": \"circleci\", \"text\": \"${CIRCLE_JOB} ${STAGE} waiting for Infra deployment.\n ${CIRCLE_BUILD_URL}\", \"icon_emoji\": \":circleci:\" }" \
             ${SLACK_WEB_HOOK}
 
   apply:
