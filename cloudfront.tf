@@ -55,7 +55,7 @@ resource "aws_cloudfront_distribution" "s3_distribution_pr03" {
     min_ttl                = 1
     max_ttl                = 31536000
     smooth_streaming       = false
-    target_origin_id       = "${var.pr03_thumbnail["s3_origin_id"]}"   //"S3-enphoto-pr03/thumbnail"
+    target_origin_id       = "${var.pr03_thumbnail["s3_origin_id"]}" //"S3-enphoto-pr03/thumbnail"
     trusted_signers        = ["self"]
     viewer_protocol_policy = "redirect-to-https"
 
@@ -95,7 +95,7 @@ resource "aws_cloudfront_distribution" "s3_distribution_pr03" {
   }
 
   tags = {
-    Name = "${var.service_name}-pr03-cloudfront"
+    Name        = "${var.service_name}-pr03-cloudfront"
     Environment = "${var.environment}"
     Service     = "${var.service_name}"
   }

@@ -30,7 +30,7 @@ variable "admin_access_cidr_block" {
 }
 
 variable "optional_resources" {
-  type = "list"
+  type    = "list"
   default = []
 }
 

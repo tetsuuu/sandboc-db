@@ -89,19 +89,19 @@ resource "aws_s3_bucket_policy" "pr03" {
   bucket = "${aws_s3_bucket.pr03.id}"
   policy = jsonencode(
     {
-      Id        = "PolicyForCloudFrontPrivateContent"
+      Id = "PolicyForCloudFrontPrivateContent"
       Statement = [
         {
-          Action    = "s3:GetObject"
-          Effect    = "Allow"
+          Action = "s3:GetObject"
+          Effect = "Allow"
           Principal = {
             AWS = "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity EQH4KPLGLS6Q5"
           }
-          Resource  = "arn:aws:s3:::enphoto-pr03/*"
-          Sid       = "1"
+          Resource = "arn:aws:s3:::enphoto-pr03/*"
+          Sid      = "1"
         },
       ]
-      Version   = "2008-10-17"
+      Version = "2008-10-17"
     }
   )
 }
