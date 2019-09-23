@@ -3,7 +3,8 @@ version: 2
 defaults: &defaults
   working_directory: /var/tmp/deploy
   environment:
-    STAGE: ${CIRCLE_BRANCH}
+#    STAGE: ${CIRCLE_BRANCH}
+    STAGE: develop
     ACCOUNT: poc
     BUCKET: tk-infra-dev
   docker:
