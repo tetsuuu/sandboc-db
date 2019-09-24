@@ -13,10 +13,6 @@ defaults: &defaults
 
 references:
   commands:
-    setup_deploy: &setup_deploy
-      name: Prepare deploy
-      command: |
-        mkdir -p /var/tmp/deploy
     lint_check: &lint_check
       name: terraform fmt
       command: |
@@ -62,7 +58,6 @@ jobs:
   checkout_code:
     <<: *defaults
     steps:
-#      - run: *setup_deploy
       - checkout
       - persist_to_workspace:
           root: .
@@ -74,7 +69,6 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-#      - run: *setup_deploy
       - run: *lint_check
 
   init:
@@ -82,7 +76,6 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-#      - run: *setup_deploy
       - run: /bin/sh ./prep_backend.sh -a ${ACCOUNT} -b ${BUCKET} -s ${STAGE} > terraform.tf
       - run: terraform init -input=false
       - persist_to_workspace:
@@ -95,7 +88,6 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-#      - run: *setup_deploy
       - run: rm -f "plan.out"
       #- run: terraform plan -var-file=./config/${ACCOUNT}/${STAGE}.tfvars -input=false -out=plan.out
       - run: terraform plan -var-file=./config/sandbox.tfvars -input=false -out=plan.out
@@ -113,7 +105,7 @@ jobs:
           command: |
             curl -X POST --data-urlencode \
             "payload={ \
-            \"channel\": \"#${SLACK_CANNEL}\", \"username\": \"circleci\", \"text\": \"${CIRCLE_PROJECT_REPONAME} ${CIRCLE_BRANCH} waiting for Infra deployment.\n https://circleci.com/workflow-run/${CIRCLE_WORKFLOW_ID}\", \"icon_emoji\": \":circleci:\" }" \
+            \"channel\": \"#${SLACK_CANNEL}\", \"username\": \"circleci\", \"text\": \"${CIRCLE_PROJECT_REPONAME} ${CIRCLE_BRANCH} waiting for Infra deployment. #${CIRCLE_BUILD_NUM} \n https://circleci.com/workflow-run/${CIRCLE_WORKFLOW_ID}\", \"icon_emoji\": \":circleci:\" }" \
             ${SLACK_WEB_HOOK}
 
   apply:
@@ -121,5 +113,4 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-#      - run: *setup_deploy
       - run: terraform apply -input=false --auto-approve plan.out
