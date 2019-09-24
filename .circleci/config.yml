@@ -73,13 +73,20 @@ jobs:
   test:
     <<: *defaults
     steps:
+      - checkout
       - run: *env_test
       - run: echo ${POC}
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
   check:
     <<: *defaults
     docker:
       - image: buildpack-deps:trusty
     steps:
+      - attach_workspace:
+          at: .
       - run: chmod +x ./echo_test.sh
       - run: ./echo_test.sh
 
