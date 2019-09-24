@@ -62,7 +62,7 @@ jobs:
   checkout_code:
     <<: *defaults
     steps:
-      - run: *setup_deploy
+#      - run: *setup_deploy
       - checkout
       - persist_to_workspace:
           root: .
@@ -74,7 +74,7 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-      - run: *setup_deploy
+#      - run: *setup_deploy
       - run: *lint_check
 
   init:
@@ -82,7 +82,7 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-      - run: *setup_deploy
+#      - run: *setup_deploy
       - run: /bin/sh ./prep_backend.sh -a ${ACCOUNT} -b ${BUCKET} -s ${STAGE} > terraform.tf
       - run: terraform init -input=false
       - persist_to_workspace:
@@ -95,7 +95,7 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-      - run: *setup_deploy
+#      - run: *setup_deploy
       - run: rm -f "plan.out"
       #- run: terraform plan -var-file=./config/${ACCOUNT}/${STAGE}.tfvars -input=false -out=plan.out
       - run: terraform plan -var-file=./config/sandbox.tfvars -input=false -out=plan.out
@@ -108,7 +108,6 @@ jobs:
     docker:
       - image: buildpack-deps:trusty
     steps:
-      - run: *setup_deploy
       - run:
           name: notify to slack
           command: |
@@ -122,5 +121,5 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-      - run: *setup_deploy
+#      - run: *setup_deploy
       - run: terraform apply -input=false --auto-approve plan.out
