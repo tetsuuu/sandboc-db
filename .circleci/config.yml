@@ -91,8 +91,8 @@ jobs:
           at: .
       - run: ls -l
       - run: pwd
-      - run: /bin/sh/chmod +x ./echo_test.sh
-      - run: /bin/sh ./echo_test.sh
+      - run: /bin/sh/chmod +x /var/tmp/deploy/echo_test.sh
+      - run: /bin/sh /var/tmp/deploy/echo_test.sh
 
 #  checkout_code:
 #    <<: *defaults
