@@ -43,7 +43,7 @@ workflows:
   plan_and_apply:
     jobs:
       - test
-      - check
+      - check:
           requires:
             - test
 #      - checkout_code
