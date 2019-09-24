@@ -1,5 +1,15 @@
 version: 2
 
+#defaults: &defaults
+#  working_directory: /var/tmp/deploy
+#  environment:
+##    STAGE: ${CIRCLE_BRANCH}
+#    STAGE: develop
+#    ACCOUNT: poc
+#    BUCKET: tk-infra-dev
+#  docker:
+#    - image: hashicorp/terraform:0.12.5
+#      user: root #
 defaults: &defaults
   working_directory: /var/tmp/deploy
   environment:
@@ -8,8 +18,7 @@ defaults: &defaults
     ACCOUNT: poc
     BUCKET: tk-infra-dev
   docker:
-    - image: hashicorp/terraform:0.12.5
-      user: root #
+    - image: buildpack-deps:trusty
 
 references:
   commands:
@@ -34,6 +43,7 @@ workflows:
   plan_and_apply:
     jobs:
       - test
+      - check
 #      - checkout_code
 #      - lint:
 #          requires:
@@ -61,11 +71,17 @@ workflows:
 
 jobs:
   test:
-    docker:
-      - image: buildpack-deps:trusty
+    <<: *defaults
     steps:
       - run: *env_test
       - run: echo ${POC}
+  check:
+    <<: *defaults
+    docker:
+      - image: buildpack-deps:trusty
+    steps:
+      - run: chmod +x ./echo_test.sh
+      - run: ./echo_test.sh
 
 #  checkout_code:
 #    <<: *defaults
