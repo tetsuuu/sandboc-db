@@ -89,6 +89,8 @@ jobs:
     steps:
       - attach_workspace:
           at: .
+      - run: ls -l
+      - run: pwd
       - run: /bin/sh/chmod +x ./echo_test.sh
       - run: /bin/sh ./echo_test.sh
 
