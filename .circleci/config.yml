@@ -44,6 +44,8 @@ workflows:
     jobs:
       - test
       - check
+          requires:
+            - test
 #      - checkout_code
 #      - lint:
 #          requires:
@@ -87,8 +89,8 @@ jobs:
     steps:
       - attach_workspace:
           at: .
-      - run: chmod +x ./echo_test.sh
-      - run: ./echo_test.sh
+      - run: /bin/sh/chmod +x ./echo_test.sh
+      - run: /bin/sh ./echo_test.sh
 
 #  checkout_code:
 #    <<: *defaults
