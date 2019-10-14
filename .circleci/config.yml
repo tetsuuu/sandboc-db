@@ -136,6 +136,7 @@ jobs:
          name: fuga initialize
          command: |
            cd ./${SERIVICE}/${STAGE}
+           pwd
            terraform init -input=false
       - persist_to_workspace:
           root: .
@@ -152,6 +153,7 @@ jobs:
          name: fuga plan
          command: |
            cd ./${SERIVICE}/${STAGE}
+           pwd
            rm -f "plan.out"
            terraform plan -out=plan.out
       - persist_to_workspace:
