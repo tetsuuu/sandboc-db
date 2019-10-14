@@ -132,12 +132,16 @@ jobs:
       - attach_workspace:
           at: .
       - run: *fuga_environment
+      - run: echo "SERIVICE:::${SERIVICE}  STAGE:::${STAGE}"
+      - run: pwd
       - run:
          name: fuga initialize
          command: |
            cd ./${SERIVICE}/${STAGE}
+           echo "SERIVICE:::${SERIVICE}  STAGE:::${STAGE}"
            pwd
            terraform init -input=false
+      - run: pwd
       - persist_to_workspace:
           root: .
           paths:
