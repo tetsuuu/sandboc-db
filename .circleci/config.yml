@@ -132,8 +132,7 @@ jobs:
       - attach_workspace:
           at: .
       - run: *fuga_environment
-      - run: echo "export STAGE=${CIRCLE_BRANCH}" >> $BASH_ENV
-      - run: echo "SERIVICE:::${SERIVICE}  STAGE:::${STAGE}"
+      - run: echo "CIRCLE_BRANCH:::${CIRCLE_BRANCH}  SERIVICE:::${SERIVICE}  STAGE:::${STAGE}"
       - run: pwd
       - run:
          name: fuga initialize
