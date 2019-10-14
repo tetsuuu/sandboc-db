@@ -19,6 +19,11 @@ references:
 #          echo "Please run terraform fmt"
 #          exit 1
 #        fi
+    bash_install: &bash_install
+      name: terraform fmt
+      command: |
+        sudo apk add bash bash-completion
+        sudo sed -e 's;/bin/ash$;/bin/bash;g' -i /etc/passwd
     hoge_environment: &hoge_environment
       name: export hoge environment
       working_directory: /
@@ -116,6 +121,7 @@ jobs:
     <<: *defaults
     steps:
       - checkout
+      - *bash_install
       - persist_to_workspace:
           root: .
           paths:
