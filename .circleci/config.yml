@@ -1,52 +1,57 @@
 version: 2
 
-#defaults: &defaults
-#  working_directory: /var/tmp/deploy
-#  environment:
-##    STAGE: ${CIRCLE_BRANCH}
-#    STAGE: develop
-#    ACCOUNT: poc
-#    BUCKET: tk-infra-dev
-#  docker:
-#    - image: hashicorp/terraform:0.12.5
-#      user: root #
 defaults: &defaults
   working_directory: /var/tmp/deploy
-  environment:
-#    STAGE: ${CIRCLE_BRANCH}
-    STAGE: develop
-    ACCOUNT: poc
-    BUCKET: tk-infra-dev
   docker:
-    - image: buildpack-deps:trusty
+    - image: hashicorp/terraform:0.12.6
+      user: root
 
 references:
   commands:
-    lint_check: &lint_check
-      name: terraform fmt
+#    lint_check: &lint_check
+#      name: terraform fmt
+#      command: |
+#        if [ $(terraform fmt | grep -v .terraform | tee fmt_result.txt | wc -l) -gt 0 ]; then
+#          echo "Format of this terraform files is not appropriate:"
+#          echo
+#          cat fmt_result.txt
+#          echo
+#          echo "Please run terraform fmt"
+#          exit 1
+#        fi
+    hoge_environment: &hoge_environment
+      name: export hoge environment
       command: |
-        if [ $(terraform fmt | grep -v .terraform | tee fmt_result.txt | wc -l) -gt 0 ]; then
-          echo "Format of this terraform files is not appropriate:"
-          echo
-          cat fmt_result.txt
-          echo
-          echo "Please run terraform fmt"
-          exit 1
+        if [ "${CIRCLE_BRANCH}" == "master" ]; then
+          echo "export STAGE=production" >> $BASH_ENV
+          echo "export SERIVICE=hoge" >> $BASH_ENV
+        else
+          echo "export STAGE=${CIRCLE_BRANCH}" >> $BASH_ENV
+          echo "export SERIVICE=hoge" >> $BASH_ENV
         fi
-    env_test: &env_test
-      name: environment test
+    fuga_environment: &fuga_environment
+      name: export fuga environment
       command: |
-        echo "export POC=${SLACK_CANNEL}"  >> $BASH_ENV
+        if [ "${CIRCLE_BRANCH}" == "master" ]; then
+          echo "export STAGE=production" >> $BASH_ENV
+          echo "export SERIVICE=fuga" >> $BASH_ENV
+        else
+          echo "export STAGE=${CIRCLE_BRANCH}" >> $BASH_ENV
+          echo "export SERIVICE=fuga" >> $BASH_ENV
+        fi
+    slack_notify: &slack_notify
+      name: notify to slack
+      command: |
+        curl -X POST --data-urlencode \
+        "payload={ \
+        \"channel\": \"#${SLACK_CANNEL}\", \"username\": \"circleci\", \"text\": \"${CIRCLE_PROJECT_REPONAME} ${STAGE} waiting for ${SERIVICE} Infra deployment.\n https://circleci.com/workflow-run/${CIRCLE_WORKFLOW_ID}\", \"icon_emoji\": \":circleci:\" }" \
+        ${SLACK_WEB_HOOK}
 
 workflows:
   version: 2
   plan_and_apply:
     jobs:
-      - test
-      - check:
-          requires:
-            - test
-#      - checkout_code
+      - checkout_code
 #      - lint:
 #          requires:
 #            - checkout_code
@@ -54,102 +59,217 @@ workflows:
 #            branches:
 #              only:
 #                - develop
-#      - init:
+      - fuga-init:
+          requires:
+            - checkout_code
+      - fuga-plan:
+          requires:
+            - fuga-init
+      - fuga-send-approval-link:
+          requires:
+            - fuga-plan
+      - fuga-hold:
+          type: approval
+          requires:
+            - fuga-plan
+      - fuga-apply:
+          requires:
+            - fuga-hold
+      - hoge-init:
+          requires:
+            - fuga-apply
+      - hoge-plan:
+          requires:
+            - hoge-init
+      - hoge-send-approval-link:
+          requires:
+            - hoge-plan
+      - hoge-hold:
+          type: approval
+          requires:
+            - hoge-plan
+      - hoge-apply:
+          requires:
+            - hoge-hold
+#      - pr-environment-init-and-plan:
 #          requires:
-#            - checkout_code
-#      - plan:
+#            - hoge-apply
+#          filters:
+#            branches:
+#              only:
+#                - staging
+#      - pr-environment-send-approval-link:
 #          requires:
-#            - init
-#      - send-approval-link:
-#          requires:
-#            - plan
-#      - hold:
+#            - pr-environment-init-and-plan
+#      - pr-environment-hold:
 #          type: approval
 #          requires:
-#            - plan
-#      - apply:
+#            - pr-environment-init-and-plan
+#      - pr-environment-apply:
 #          requires:
-#            - hold
+#            - pr-environment-hold
 
 jobs:
-  test:
+  checkout_code:
     <<: *defaults
     steps:
       - checkout
-      - run: *env_test
-      - run: echo ${POC}
       - persist_to_workspace:
           root: .
           paths:
             - .
-  check:
-    <<: *defaults
-    docker:
-      - image: buildpack-deps:trusty
-    steps:
-      - attach_workspace:
-          at: .
-      - run: ls -l
-      - run: pwd
-      - run: /bin/chmod +x ./echo_test.sh
-      - run: ./echo_test.sh
 
-#  checkout_code:
-#    <<: *defaults
-#    steps:
-#      - checkout
-#      - persist_to_workspace:
-#          root: .
-#          paths:
-#            - .
-#
 #  lint:
 #    <<: *defaults
 #    steps:
 #      - attach_workspace:
 #          at: .
 #      - run: *lint_check
-#
-#  init:
+
+  fuga-init:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: .
+      - run: *fuga_environment
+      - run:
+         name: fuga initialize
+         command: |
+           cd ./${SERIVICE}/${STAGE}
+           terraform init -input=false
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+
+  fuga-plan:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: .
+      - run: *fuga_environment
+      - run:
+         name: fuga plan
+         command: |
+           cd ./${SERIVICE}/${STAGE}
+           rm -f "plan.out"
+           terraform plan -out=plan.out
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+
+  fuga-send-approval-link:
+    docker:
+      - image: buildpack-deps:trusty
+    steps:
+      - run: *fuga_environment
+      - run: *slack_notify
+
+  fuga-apply:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: .
+      - run: *fuga_environment
+      - run:
+         name: fuga apply
+         command: |
+           cd ./${SERIVICE}/${STAGE}
+           rm -f "plan.out"
+           terraform apply -input=false --auto-approve plan.out
+
+  hoge-init:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: .
+      - run: *hoge_environment
+      - run:
+         name: hoge initialize
+         command: |
+           cd ./${SERIVICE}/${STAGE}
+           terraform init -input=false
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+
+  hoge-plan:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: .
+      - run: *hoge_environment
+      - run:
+         name: hoge plan
+         command: |
+           cd ./${SERIVICE}/${STAGE}
+           rm -f "plan.out"
+           terraform plan -out=plan.out
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+
+  hoge-send-approval-link:
+    docker:
+      - image: buildpack-deps:trusty
+    steps:
+      - run: *hoge_environment
+      - run: *slack_notify
+
+  hoge-apply:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: .
+      - run: *hoge_environment
+      - run:
+         name: hoge apply
+         command: |
+           cd ./${SERIVICE}/${STAGE}
+           rm -f "plan.out"
+           terraform apply -input=false --auto-approve plan.out
+
+#  pr-environment-init-and-plan:
 #    <<: *defaults
 #    steps:
 #      - attach_workspace:
 #          at: .
-#      - run: /bin/sh ./prep_backend.sh -a ${ACCOUNT} -b ${BUCKET} -s ${STAGE} > terraform.tf
-#      - run: terraform init -input=false
+#      - run: *hoge_environment
+#      - run:
+#         name: pr-environment initialize
+#         command: |
+#           cd ./${SERIVICE}/pullrequest
+#           terraform init -input=false
+#           rm -f "plan.out"
+#           terraform plan -out=plan.out
 #      - persist_to_workspace:
 #          root: .
 #          paths:
 #            - .
 #
-#  plan:
-#    <<: *defaults
-#    steps:
-#      - attach_workspace:
-#          at: .
-#      - run: rm -f "plan.out"
-#      #- run: terraform plan -var-file=./config/${ACCOUNT}/${STAGE}.tfvars -input=false -out=plan.out
-#      - run: terraform plan -var-file=./config/sandbox.tfvars -input=false -out=plan.out
-#      - persist_to_workspace:
-#          root: .
-#          paths:
-#            - .
-#
-#  send-approval-link:
+#  pr-environment-send-approval-link:
 #    docker:
 #      - image: buildpack-deps:trusty
 #    steps:
 #      - run:
-#          name: notify to slack
-#          command: |
-#            curl -X POST --data-urlencode \
-#            "payload={ \
-#            \"channel\": \"#${SLACK_CANNEL}\", \"username\": \"circleci\", \"text\": \"${CIRCLE_PROJECT_REPONAME} ${CIRCLE_BRANCH} waiting for Infra deployment. #${CIRCLE_BUILD_NUM} \n https://circleci.com/workflow-run/${CIRCLE_WORKFLOW_ID}\", \"icon_emoji\": \":circleci:\" }" \
-#            ${SLACK_WEB_HOOK}
+#         name: export pr environment
+#         command: |
+#           echo "export STAGE=PR" >> $BASH_ENV
+#           echo "export SERIVICE=hoge" >> $BASH_ENV
+#      - run: *slack_notify
 #
-#  apply:
+#  pr-environment-apply:
 #    <<: *defaults
 #    steps:
 #      - attach_workspace:
 #          at: .
-#      - run: terraform apply -input=false --auto-approve plan.out
+#      - run: *hoge_environment
+#      - run:
+#         name: pr-environment apply
+#         command: |
+#           cd ./${SERIVICE}/pullrequest
+#           rm -f "plan.out"
+#           terraform apply -input=false --auto-approve plan.out
