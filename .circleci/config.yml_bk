@@ -1,0 +1,155 @@
+version: 2
+
+#defaults: &defaults
+#  working_directory: /var/tmp/deploy
+#  environment:
+##    STAGE: ${CIRCLE_BRANCH}
+#    STAGE: develop
+#    ACCOUNT: poc
+#    BUCKET: tk-infra-dev
+#  docker:
+#    - image: hashicorp/terraform:0.12.5
+#      user: root #
+defaults: &defaults
+  working_directory: /var/tmp/deploy
+  environment:
+#    STAGE: ${CIRCLE_BRANCH}
+    STAGE: develop
+    ACCOUNT: poc
+    BUCKET: tk-infra-dev
+  docker:
+    - image: buildpack-deps:trusty
+
+references:
+  commands:
+    lint_check: &lint_check
+      name: terraform fmt
+      command: |
+        if [ $(terraform fmt | grep -v .terraform | tee fmt_result.txt | wc -l) -gt 0 ]; then
+          echo "Format of this terraform files is not appropriate:"
+          echo
+          cat fmt_result.txt
+          echo
+          echo "Please run terraform fmt"
+          exit 1
+        fi
+    env_test: &env_test
+      name: environment test
+      command: |
+        echo "export POC=${SLACK_CANNEL}"  >> $BASH_ENV
+
+workflows:
+  version: 2
+  plan_and_apply:
+    jobs:
+      - test
+      - check:
+          requires:
+            - test
+#      - checkout_code
+#      - lint:
+#          requires:
+#            - checkout_code
+#          filters:
+#            branches:
+#              only:
+#                - develop
+#      - init:
+#          requires:
+#            - checkout_code
+#      - plan:
+#          requires:
+#            - init
+#      - send-approval-link:
+#          requires:
+#            - plan
+#      - hold:
+#          type: approval
+#          requires:
+#            - plan
+#      - apply:
+#          requires:
+#            - hold
+
+jobs:
+  test:
+    <<: *defaults
+    steps:
+      - checkout
+      - run: *env_test
+      - run: echo ${POC}
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+  check:
+    <<: *defaults
+    docker:
+      - image: buildpack-deps:trusty
+    steps:
+      - attach_workspace:
+          at: .
+      - run: ls -l
+      - run: pwd
+      - run: /bin/chmod +x ./echo_test.sh
+      - run: ./echo_test.sh
+
+#  checkout_code:
+#    <<: *defaults
+#    steps:
+#      - checkout
+#      - persist_to_workspace:
+#          root: .
+#          paths:
+#            - .
+#
+#  lint:
+#    <<: *defaults
+#    steps:
+#      - attach_workspace:
+#          at: .
+#      - run: *lint_check
+#
+#  init:
+#    <<: *defaults
+#    steps:
+#      - attach_workspace:
+#          at: .
+#      - run: /bin/sh ./prep_backend.sh -a ${ACCOUNT} -b ${BUCKET} -s ${STAGE} > terraform.tf
+#      - run: terraform init -input=false
+#      - persist_to_workspace:
+#          root: .
+#          paths:
+#            - .
+#
+#  plan:
+#    <<: *defaults
+#    steps:
+#      - attach_workspace:
+#          at: .
+#      - run: rm -f "plan.out"
+#      #- run: terraform plan -var-file=./config/${ACCOUNT}/${STAGE}.tfvars -input=false -out=plan.out
+#      - run: terraform plan -var-file=./config/sandbox.tfvars -input=false -out=plan.out
+#      - persist_to_workspace:
+#          root: .
+#          paths:
+#            - .
+#
+#  send-approval-link:
+#    docker:
+#      - image: buildpack-deps:trusty
+#    steps:
+#      - run:
+#          name: notify to slack
+#          command: |
+#            curl -X POST --data-urlencode \
+#            "payload={ \
+#            \"channel\": \"#${SLACK_CANNEL}\", \"username\": \"circleci\", \"text\": \"${CIRCLE_PROJECT_REPONAME} ${CIRCLE_BRANCH} waiting for Infra deployment. #${CIRCLE_BUILD_NUM} \n https://circleci.com/workflow-run/${CIRCLE_WORKFLOW_ID}\", \"icon_emoji\": \":circleci:\" }" \
+#            ${SLACK_WEB_HOOK}
+#
+#  apply:
+#    <<: *defaults
+#    steps:
+#      - attach_workspace:
+#          at: .
+#      - run: terraform apply -input=false --auto-approve plan.out
