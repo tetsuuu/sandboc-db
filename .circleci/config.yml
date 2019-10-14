@@ -21,6 +21,7 @@ references:
 #        fi
     hoge_environment: &hoge_environment
       name: export hoge environment
+      working_directory: /
       command: |
         if [ "${CIRCLE_BRANCH}" == "master" ]; then
           echo "export STAGE=production" >> $BASH_ENV
@@ -31,6 +32,7 @@ references:
         fi
     fuga_environment: &fuga_environment
       name: export fuga environment
+      working_directory: /
       command: |
         if [ "${CIRCLE_BRANCH}" == "master" ]; then
           echo "export STAGE=production" >> $BASH_ENV
