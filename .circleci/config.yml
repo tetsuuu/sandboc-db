@@ -20,7 +20,7 @@ references:
 #          exit 1
 #        fi
     bash_install: &bash_install
-      name: terraform fmt
+      name: bash install
       command: |
         sudo apk add bash bash-completion
         sudo sed -e 's;/bin/ash$;/bin/bash;g' -i /etc/passwd
@@ -121,7 +121,7 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - *bash_install
+      - run: *bash_install
       - persist_to_workspace:
           root: .
           paths:
