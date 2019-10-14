@@ -22,8 +22,18 @@ references:
     bash_install: &bash_install
       name: bash install
       command: |
-        apk add bash bash-completion
-        sed -e 's;/bin/ash$;/bin/bash;g' -i /etc/passwd
+        sudo apk add bash bash-completion
+        sudo sed -e 's;/bin/ash$;/bin/bash;g' -i /etc/passwd
+        cat <<EOF > ~/.bashrc
+        PS1="\[\e[1;32m\]\u@\h:\[\e[0m\]\w\[\e[1;32m\]$ \[\e[0m\]"
+        EOF
+        cat <<EOF >> ~/.profile
+        if [ "\${SHELL}x" = "/bin/bashx" ]; then
+          if [ -f "\${HOME}/.bashrc" ]; then
+            . "\${HOME}/.bashrc"
+          fi
+        fi
+        EOF
     hoge_environment: &hoge_environment
       name: export hoge environment
       working_directory: /
